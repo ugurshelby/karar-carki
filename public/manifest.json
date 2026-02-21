@@ -1,0 +1,23 @@
+{
+  "name": "Date Çarkı – Karar Çarkı",
+  "short_name": "Karar Çarkı",
+  "description": "Mekan seçim çarkı ve anılar",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#0A0A0A",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
