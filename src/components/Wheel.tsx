@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion, useAnimation, useSpring } from 'motion/react';
-import { Venue } from '../data';
+import { Venue } from '../types';
 
 interface WheelProps {
   items: Venue[];
@@ -8,16 +8,13 @@ interface WheelProps {
   isSpinning: boolean;
 }
 
-const COLORS = [
-  '#ef4444', // red-500
-  '#f97316', // orange-500
-  '#eab308', // yellow-500
-  '#22c55e', // green-500
-  '#06b6d4', // cyan-500
-  '#3b82f6', // blue-500
-  '#a855f7', // purple-500
-  '#ec4899', // pink-500
-];
+function getCategoryColor(v: Venue): string {
+  if (v.category === 'yemek') return '#E84820';
+  if (v.category === 'kafe') return '#6B3A1F';
+  if (v.category === 'tatlı') return '#3A8CAE';
+  if (v.category === 'bar') return '#2A6B3C';
+  return '#6B6560';
+}
 
 export const Wheel: React.FC<WheelProps> = ({ items, onSpinComplete, isSpinning }) => {
   const controls = useAnimation();
@@ -68,7 +65,7 @@ export const Wheel: React.FC<WheelProps> = ({ items, onSpinComplete, isSpinning 
 
     return {
       path: pathData,
-      color: COLORS[index % COLORS.length],
+      color: getCategoryColor(item),
       label: item.name,
       rotation: startAngle + anglePerSegment / 2, // For text placement
     };
@@ -89,6 +86,7 @@ export const Wheel: React.FC<WheelProps> = ({ items, onSpinComplete, isSpinning 
     
     const randomIndex = Math.floor(Math.random() * numSegments);
     const winner = items[randomIndex];
+    if (!winner) return;
 
     // Calculate target rotation
     // We want the center of the winning segment to align with the top pointer.
@@ -149,7 +147,7 @@ export const Wheel: React.FC<WheelProps> = ({ items, onSpinComplete, isSpinning 
     <div className="relative w-full max-w-[320px] aspect-square mx-auto">
       {/* Pointer */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20">
-        <div className="w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[20px] border-t-white drop-shadow-lg" />
+        <div className="w-0 h-0 border-l-10 border-l-transparent border-r-10 border-r-transparent border-t-20 border-t-[#9A5C28] drop-shadow-lg" />
       </div>
 
       {/* Wheel Container */}

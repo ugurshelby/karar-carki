@@ -1,0 +1,255 @@
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  .app { font-family: 'DM Sans', sans-serif; background: #1a1a1a; border-radius: 16px; overflow: hidden; width: 100%; }
+  .phone-wrap { display: flex; gap: 16px; padding: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .screen { background: #1a1a1a; border-radius: 28px; border: 1.5px solid rgba(245,240,232,0.12); overflow: hidden; width: 220px; flex-shrink: 0; }
+  .screen-header { background: #111111; padding: 14px 16px 10px; display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid rgba(245,240,232,0.08); }
+  .logo-row { display: flex; align-items: center; gap: 8px; }
+  .app-name { font-size: 16px; font-weight: 600; color: #F5F0E8; letter-spacing: -0.02em; }
+  .screen-body { padding: 12px; }
+  .venue-card { border-radius: 12px; overflow: hidden; margin-bottom: 10px; height: 100px; position: relative; }
+  .venue-bg { width: 100%; height: 100%; display: flex; align-items: flex-end; padding: 10px; }
+  .venue-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.1) 60%, transparent 100%); }
+  .venue-content { position: relative; z-index: 1; width: 100%; }
+  .venue-name { font-size: 13px; font-weight: 600; color: #F5F0E8; line-height: 1.2; }
+  .venue-district { font-size: 10px; color: #A8A095; margin-top: 1px; }
+  .venue-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; }
+  .stars { font-size: 10px; color: #E8923A; }
+  .price { font-size: 10px; color: #A8A095; }
+  .cat-badge { position: absolute; top: 8px; left: 8px; z-index: 2; border-radius: 4px; padding: 2px 7px; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .maps-btn { position: absolute; top: 8px; right: 8px; z-index: 2; width: 22px; height: 22px; border-radius: 50%; background: rgba(245,240,232,0.15); display: flex; align-items: center; justify-content: center; }
+  .tabbar { background: #111111; border-top: 0.5px solid rgba(245,240,232,0.08); display: flex; padding: 8px 0 10px; }
+  .tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 9px; font-weight: 500; color: #6B6560; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tab.active { color: #9A5C28; }
+  .right-col { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 14px; }
+  .section-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #6B6560; margin-bottom: 8px; }
+  .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .cat-swatch { border-radius: 10px; padding: 12px 10px; display: flex; flex-direction: column; gap: 5px; }
+  .cat-label { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+  .flame-bar { height: 6px; border-radius: 3px; margin-top: 4px; }
+  .comp-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn-primary { background: #9A5C28; color: #F5F0E8; border: none; border-radius: 8px; padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-ghost { background: transparent; color: #F5F0E8; border: 0.5px solid rgba(245,240,232,0.2); border-radius: 8px; padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .btn-muted { background: transparent; color: #A8A095; border: 0.5px solid rgba(245,240,232,0.1); border-radius: 8px; padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; }
+  .input-demo { background: #2e2e2e; border: 0.5px solid rgba(245,240,232,0.08); border-radius: 8px; padding: 9px 12px; color: #F5F0E8; font-family: 'DM Sans', sans-serif; font-size: 12px; outline: none; width: 100%; margin-top: 6px; }
+  .input-demo::placeholder { color: #6B6560; }
+  .pin-demo { display: flex; gap: 8px; justify-content: center; padding: 8px 0 2px; }
+  .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(245,240,232,0.2); }
+  .pin-dot.filled { background: #9A5C28; border-color: #9A5C28; }
+  .profile-cards { display: flex; gap: 8px; }
+  .profile-card { flex: 1; background: #242424; border: 0.5px solid rgba(245,240,232,0.08); border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .profile-card.shelby { border-color: rgba(154,92,40,0.5); }
+  .profile-avatar { width: 36px; height: 36px; border-radius: 50%; background: #2e2e2e; display: flex; align-items: center; justify-content: center; }
+  .profile-name { font-size: 11px; font-weight: 600; color: #F5F0E8; }
+</style>
+
+<div class="app">
+  <div class="phone-wrap">
+
+    <div class="screen">
+      <div class="screen-header">
+        <div class="logo-row">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" stroke="rgba(245,240,232,0.12)" stroke-width="1"/>
+            <path d="M14 14 L14 2 A12 12 0 0 1 24.4 8 Z" fill="#E84820"/>
+            <path d="M14 14 L24.4 8 A12 12 0 0 1 24.4 20 Z" fill="#5BAFD6"/>
+            <path d="M14 14 L24.4 20 A12 12 0 0 1 3.6 20 Z" fill="#2A6B3C"/>
+            <path d="M14 14 L3.6 20 A12 12 0 0 1 3.6 8 Z" fill="#6B3A1F"/>
+            <path d="M14 14 L3.6 8 A12 12 0 0 1 14 2 Z" fill="#C03010"/>
+            <circle cx="14" cy="14" r="3.5" fill="#1a1a1a"/>
+            <polygon points="14,1 15.2,4.5 13,4.5" fill="#9A5C28"/>
+          </svg>
+          <span class="app-name">Spinout</span>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="5" r="1.5" fill="#6B6560"/>
+          <circle cx="8" cy="8" r="1.5" fill="#6B6560"/>
+          <circle cx="8" cy="11" r="1.5" fill="#6B6560"/>
+        </svg>
+      </div>
+      <div class="screen-body">
+
+        <div class="venue-card">
+          <div class="venue-bg" style="background: linear-gradient(135deg, #280800 0%, #3d1000 100%);">
+            <div class="venue-overlay"></div>
+            <div class="venue-content">
+              <div class="venue-name">Yanyalı Fehmi</div>
+              <div class="venue-district">Karaköy</div>
+              <div class="venue-meta"><span class="stars">★ 4.6</span><span class="price">₺₺</span></div>
+            </div>
+          </div>
+          <div class="cat-badge" style="background: rgba(232,72,32,0.22); color: #E84820;">yemek</div>
+          <div class="maps-btn"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1.5C3.5 1.5 2.5 2.8 2.5 4C2.5 5.8 5 9 5 9C5 9 7.5 5.8 7.5 4C7.5 2.8 6.5 1.5 5 1.5Z" stroke="#F5F0E8" stroke-width="0.8" fill="none"/><circle cx="5" cy="4" r="1" fill="#F5F0E8"/></svg></div>
+        </div>
+
+        <div class="venue-card">
+          <div class="venue-bg" style="background: linear-gradient(135deg, #1a0c04 0%, #2e160a 100%);">
+            <div class="venue-overlay"></div>
+            <div class="venue-content">
+              <div class="venue-name">Kronotrop</div>
+              <div class="venue-district">Nişantaşı</div>
+              <div class="venue-meta"><span class="stars">★ 4.4</span><span class="price">₺₺</span></div>
+            </div>
+          </div>
+          <div class="cat-badge" style="background: rgba(107,58,31,0.4); color: #B5713A;">kafe</div>
+          <div class="maps-btn"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1.5C3.5 1.5 2.5 2.8 2.5 4C2.5 5.8 5 9 5 9C5 9 7.5 5.8 7.5 4C7.5 2.8 6.5 1.5 5 1.5Z" stroke="#F5F0E8" stroke-width="0.8" fill="none"/><circle cx="5" cy="4" r="1" fill="#F5F0E8"/></svg></div>
+        </div>
+
+        <div class="venue-card">
+          <div class="venue-bg" style="background: linear-gradient(135deg, #0a1a0e 0%, #122A18 100%);">
+            <div class="venue-overlay"></div>
+            <div class="venue-content">
+              <div class="venue-name">Nardis Jazz Club</div>
+              <div class="venue-district">Beyoğlu</div>
+              <div class="venue-meta"><span class="stars">★ 4.8</span><span class="price">₺₺₺</span></div>
+            </div>
+          </div>
+          <div class="cat-badge" style="background: rgba(42,107,60,0.35); color: #4CA86A;">bar</div>
+          <div class="maps-btn"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1.5C3.5 1.5 2.5 2.8 2.5 4C2.5 5.8 5 9 5 9C5 9 7.5 5.8 7.5 4C7.5 2.8 6.5 1.5 5 1.5Z" stroke="#F5F0E8" stroke-width="0.8" fill="none"/><circle cx="5" cy="4" r="1" fill="#F5F0E8"/></svg></div>
+        </div>
+
+      </div>
+      <div class="tabbar">
+        <div class="tab active">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 4h12M3 7h8M3 10h10M3 13h6" stroke="#9A5C28" stroke-width="1.3" stroke-linecap="round"/></svg>
+          mekanlar
+        </div>
+        <div class="tab">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="#6B6560" stroke-width="1.2"/><path d="M9 9 L9 3" stroke="#6B6560" stroke-width="1.2" stroke-linecap="round"/><path d="M9 9 L13 9" stroke="#6B6560" stroke-width="1.2" stroke-linecap="round"/><circle cx="9" cy="9" r="1.5" fill="#6B6560"/></svg>
+          çark
+        </div>
+      </div>
+    </div>
+
+    <div class="right-col">
+
+      <div>
+        <div class="section-label">Kategori renkleri</div>
+        <div class="cat-grid">
+
+          <div class="cat-swatch" style="background: rgba(232,72,32,0.14); border: 0.5px solid rgba(232,72,32,0.4);">
+            <div class="cat-label" style="color:#E84820;">yemek</div>
+            <div style="font-size:9px;font-family:monospace;color:#802010;">turuncu-kırmızı</div>
+            <div style="display:flex;gap:3px;margin-top:4px;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#F06030;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#E84820;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#C83010;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#A02008;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#6E1004;"></div>
+            </div>
+            <div class="flame-bar" style="background: linear-gradient(to right, #F06030, #E84820, #C83010, #A02008, #6E1004);"></div>
+          </div>
+
+          <div class="cat-swatch" style="background: rgba(82,40,16,0.35); border: 0.5px solid rgba(107,58,31,0.6);">
+            <div class="cat-label" style="color:#B5713A;">kafe</div>
+            <div style="font-size:9px;font-family:monospace;color:#7a4a20;">kahve çekirdeği</div>
+            <div style="display:flex;gap:3px;margin-top:4px;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#C07840;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#8B4A20;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#6B3A1F;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#4A2210;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#2E1408;"></div>
+            </div>
+            <div class="flame-bar" style="background: linear-gradient(to right, #C07840, #8B4A20, #6B3A1F, #4A2210, #2E1408);"></div>
+          </div>
+
+          <div class="cat-swatch" style="background: rgba(91,175,214,0.12); border: 0.5px solid rgba(91,175,214,0.35);">
+            <div class="cat-label" style="color:#5BAFD6;">tatlı</div>
+            <div style="font-size:9px;font-family:monospace;color:#2a708e;">bebek mavisi</div>
+            <div style="display:flex;gap:3px;margin-top:4px;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#8DCDE8;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#5BAFD6;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#3A8CAE;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#1E6888;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#0d3a52;"></div>
+            </div>
+            <div class="flame-bar" style="background: linear-gradient(to right, #8DCDE8, #5BAFD6, #3A8CAE, #1E6888, #0d3a52);"></div>
+          </div>
+
+          <div class="cat-swatch" style="background: rgba(18,42,24,0.7); border: 0.5px solid rgba(42,107,60,0.6);">
+            <div class="cat-label" style="color:#4CA86A;">bar</div>
+            <div style="font-size:9px;font-family:monospace;color:#2a6040;">dublin yeşili</div>
+            <div style="display:flex;gap:3px;margin-top:4px;">
+              <div style="width:14px;height:14px;border-radius:3px;background:#5DC47C;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#4CA86A;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#2A6B3C;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#1A4428;"></div>
+              <div style="width:14px;height:14px;border-radius:3px;background:#0E2818;"></div>
+            </div>
+            <div class="flame-bar" style="background: linear-gradient(to right, #5DC47C, #4CA86A, #2A6B3C, #1A4428, #0E2818);"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Çark segmentleri</div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#E84820;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:8px;font-weight:700;color:#fff;">YMK</span>
+            </div>
+            <span style="font-size:9px;color:#E84820;">yemek</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#6B3A1F;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:8px;font-weight:700;color:#C07840;">KFE</span>
+            </div>
+            <span style="font-size:9px;color:#B5713A;">kafe</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#3A8CAE;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:8px;font-weight:700;color:#E8F6FC;">TTL</span>
+            </div>
+            <span style="font-size:9px;color:#5BAFD6;">tatlı</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#2A6B3C;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:8px;font-weight:700;color:#9AE8B4;">BAR</span>
+            </div>
+            <span style="font-size:9px;color:#4CA86A;">bar</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Bileşenler</div>
+        <div class="comp-row">
+          <button class="btn-primary">çevir</button>
+          <button class="btn-ghost">sürpriz!</button>
+          <button class="btn-muted">iptal</button>
+        </div>
+        <input class="input-demo" placeholder="mekan ara..." />
+      </div>
+
+      <div>
+        <div class="section-label">Profil seçimi</div>
+        <div class="profile-cards">
+          <div class="profile-card">
+            <div class="profile-avatar">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="7" r="3.5" stroke="#6B6560" stroke-width="1.2"/><path d="M2 16c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="#6B6560" stroke-width="1.2" stroke-linecap="round"/></svg>
+            </div>
+            <div class="profile-name">Misafir</div>
+            <div style="font-size:9px;color:#6B6560;">sadece görüntüle</div>
+          </div>
+          <div class="profile-card shelby">
+            <div class="profile-avatar" style="background:rgba(154,92,40,0.18);">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L10.5 6.5H15.5L11.5 9.5L13 14L9 11L5 14L6.5 9.5L2.5 6.5H7.5Z" stroke="#9A5C28" stroke-width="1.2" stroke-linejoin="round" fill="none"/></svg>
+            </div>
+            <div class="profile-name">Shelby</div>
+            <div style="font-size:9px;color:#9A5C28;">admin</div>
+          </div>
+        </div>
+        <div class="pin-demo">
+          <div class="pin-dot filled"></div>
+          <div class="pin-dot filled"></div>
+          <div class="pin-dot"></div>
+          <div class="pin-dot"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

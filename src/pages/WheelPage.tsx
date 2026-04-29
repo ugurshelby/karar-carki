@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Utensils, 
   Coffee, 
+  Cake,
+  Martini,
   ChevronRight, 
   RotateCcw, 
   Plus, 
@@ -11,12 +13,14 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
-import { Venue } from '../data';
+import { Category, Venue } from '../types';
 import { Wheel } from '../components/Wheel';
+import { SurpriseButton } from '../components/wheel/SurpriseButton';
+import { WinnerCard } from '../components/wheel/WinnerCard';
 
 // --- Types ---
 type Step = 'mode' | 'district' | 'checklist' | 'spin' | 'result';
-type Mode = 'yemek' | 'tatlı-kahve';
+type Mode = Category;
 
 // --- Components ---
 
@@ -128,7 +132,7 @@ const VenueCard: React.FC<VenueCardProps> = ({
 );
 
 export const WheelPage: React.FC = () => {
-  const { venues, districts, addVenue } = useData();
+  const { venues, districts } = useData();
   
   const [step, setStep] = useState<Step>('mode');
   const [mode, setMode] = useState<Mode | null>(null);
@@ -137,6 +141,7 @@ export const WheelPage: React.FC = () => {
   const [customVenues, setCustomVenues] = useState<Venue[]>([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [winner, setWinner] = useState<Venue | null>(null);
+  const [surpriseMode, setSurpriseMode] = useState(false);
   
   // Derived state
   const activeVenues = useMemo(() => {
@@ -145,6 +150,7 @@ export const WheelPage: React.FC = () => {
     // Standard venues from context
     const standard = venues.filter(v => 
       v.category === mode && 
+      !!v.district &&
       selectedDistricts.includes(v.district) &&
       !excludedVenueIds.has(v.id)
     );
@@ -177,7 +183,7 @@ export const WheelPage: React.FC = () => {
     const newVenue: Venue = {
       id: `temp-${Date.now()}`,
       name,
-      district: 'Özel',
+      district: null,
       category: mode!,
       tags: ['Özel'],
       isCustom: true
@@ -198,6 +204,7 @@ export const WheelPage: React.FC = () => {
     setSelectedDistricts([]);
     setExcludedVenueIds(new Set());
     setWinner(null);
+    setSurpriseMode(false);
   };
 
   const handleReroll = () => {
@@ -257,19 +264,68 @@ export const WheelPage: React.FC = () => {
             </button>
 
             <button 
-              onClick={() => handleModeSelect('tatlı-kahve')}
-              className="group relative h-32 bg-linear-to-br from-[#161616] to-[#0A0A0A] border border-[#262626] rounded-3xl overflow-hidden transition-all active:scale-98 hover:border-blue-500/30"
+              onClick={() => handleModeSelect('tatlı')}
+              className="group relative h-32 bg-linear-to-br from-[#161616] to-[#0A0A0A] border border-[#262626] rounded-3xl overflow-hidden transition-all active:scale-98 hover:border-pink-500/30"
             >
-              <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors" />
+              <div className="absolute inset-0 bg-pink-500/5 group-hover:bg-pink-500/10 transition-colors" />
               <div className="absolute inset-0 flex items-center justify-between px-8">
                 <div className="flex flex-col items-start">
-                  <span className="text-2xl font-bold text-white group-hover:text-blue-400 transition-colors">Tatlı / Kahve</span>
+                  <span className="text-2xl font-bold text-white group-hover:text-pink-400 transition-colors">Tatlı</span>
                 </div>
-                <div className="w-14 h-14 bg-[#1A1A1A] rounded-2xl flex items-center justify-center text-blue-500 border border-[#333] group-hover:scale-110 transition-transform shadow-lg">
+                <div className="w-14 h-14 bg-[#1A1A1A] rounded-2xl flex items-center justify-center text-pink-500 border border-[#333] group-hover:scale-110 transition-transform shadow-lg">
+                  <Cake size={28} />
+                </div>
+              </div>
+            </button>
+
+            <button 
+              onClick={() => handleModeSelect('kafe')}
+              className="group relative h-32 bg-linear-to-br from-[#161616] to-[#0A0A0A] border border-[#262626] rounded-3xl overflow-hidden transition-all active:scale-98 hover:border-amber-500/30"
+            >
+              <div className="absolute inset-0 bg-amber-500/5 group-hover:bg-amber-500/10 transition-colors" />
+              <div className="absolute inset-0 flex items-center justify-between px-8">
+                <div className="flex flex-col items-start">
+                  <span className="text-2xl font-bold text-white group-hover:text-amber-400 transition-colors">Kafe</span>
+                </div>
+                <div className="w-14 h-14 bg-[#1A1A1A] rounded-2xl flex items-center justify-center text-amber-500 border border-[#333] group-hover:scale-110 transition-transform shadow-lg">
                   <Coffee size={28} />
                 </div>
               </div>
             </button>
+
+            <button 
+              onClick={() => handleModeSelect('bar')}
+              className="group relative h-32 bg-linear-to-br from-[#161616] to-[#0A0A0A] border border-[#262626] rounded-3xl overflow-hidden transition-all active:scale-98 hover:border-purple-500/30"
+            >
+              <div className="absolute inset-0 bg-purple-500/5 group-hover:bg-purple-500/10 transition-colors" />
+              <div className="absolute inset-0 flex items-center justify-between px-8">
+                <div className="flex flex-col items-start">
+                  <span className="text-2xl font-bold text-white group-hover:text-purple-400 transition-colors">Bar</span>
+                </div>
+                <div className="w-14 h-14 bg-[#1A1A1A] rounded-2xl flex items-center justify-center text-purple-500 border border-[#333] group-hover:scale-110 transition-transform shadow-lg">
+                  <Martini size={28} />
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <SurpriseButton
+              onClick={() => {
+                const cats: Category[] = ['yemek', 'tatlı', 'kafe', 'bar'];
+                const cat = cats[Math.floor(Math.random() * cats.length)] ?? 'yemek';
+                const dCount = Math.max(1, Math.min(3, districts.length));
+                const shuffled = [...districts].sort(() => Math.random() - 0.5);
+                const picked = shuffled.slice(0, dCount);
+                setSurpriseMode(true);
+                setMode(cat);
+                setSelectedDistricts(picked);
+                setExcludedVenueIds(new Set());
+                setWinner(null);
+                setStep('spin');
+                setTimeout(() => setIsSpinning(true), 50);
+              }}
+            />
           </div>
         </div>
       </div>
@@ -393,13 +449,30 @@ export const WheelPage: React.FC = () => {
           </div>
 
           {!isSpinning && (
-            <Button 
-              onClick={() => setIsSpinning(true)} 
-              className="w-full max-w-xs mx-auto"
-              variant="primary"
-            >
-              ÇEVİR
-            </Button>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => setIsSpinning(true)} 
+                className="flex-1"
+                variant="primary"
+              >
+                ÇEVİR
+              </Button>
+              <SurpriseButton
+                onClick={() => {
+                  const cats: Category[] = ['yemek', 'tatlı', 'kafe', 'bar'];
+                  const cat = cats[Math.floor(Math.random() * cats.length)] ?? 'yemek';
+                  const dCount = Math.max(1, Math.min(3, districts.length));
+                  const shuffled = [...districts].sort(() => Math.random() - 0.5);
+                  const picked = shuffled.slice(0, dCount);
+                  setSurpriseMode(true);
+                  setMode(cat);
+                  setSelectedDistricts(picked);
+                  setExcludedVenueIds(new Set());
+                  setWinner(null);
+                  setTimeout(() => setIsSpinning(true), 50);
+                }}
+              />
+            </div>
           )}
         </div>
       </div>
@@ -410,28 +483,14 @@ export const WheelPage: React.FC = () => {
   if (step === 'result' && winner) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] p-6 pb-24 flex flex-col items-center justify-center">
-        <div className="max-w-md w-full text-center">
+        <div className="max-w-md w-full">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="mb-8"
+            className="mb-6"
           >
-            <div className="inline-block px-4 py-1.5 rounded-full bg-green-500/10 text-green-500 text-sm font-medium mb-6 border border-green-500/20">
-              Kazanan Seçildi
-            </div>
-            <h1 className="text-5xl font-bold text-white mb-4 leading-tight">{winner.name}</h1>
-            <p className="text-xl text-gray-400">{winner.district}</p>
+            <WinnerCard venue={winner} title={surpriseMode ? 'Sürpriz' : 'Kazanan'} />
           </motion.div>
-
-          <div className="bg-[#161616] border border-[#262626] rounded-3xl p-6 mb-8">
-            <div className="flex flex-wrap justify-center gap-2">
-              {winner.tags.map(tag => (
-                <span key={tag} className="px-3 py-1 bg-[#262626] rounded-lg text-sm text-gray-300">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
 
           <div className="space-y-3">
             <Button onClick={handleReset} variant="primary" className="w-full">
