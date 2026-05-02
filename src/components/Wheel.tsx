@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { motion, useAnimation, useSpring } from 'motion/react';
-import { Venue } from '../types';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useAnimation } from 'motion/react';
+import type { Venue } from '../types';
 
 interface WheelProps {
   items: Venue[];
@@ -16,176 +16,188 @@ function getCategoryColor(v: Venue): string {
   return '#6B6560';
 }
 
+function shortenGraphemes(name: string, maxGraphemes: number): string {
+  if (maxGraphemes <= 0) return '';
+  try {
+    const seg = new Intl.Segmenter('tr', { granularity: 'grapheme' });
+    const parts = [...seg.segment(name)].map((s) => s.segment);
+    if (parts.length <= maxGraphemes) return name;
+    return parts.slice(0, maxGraphemes).join('') + '…';
+  } catch {
+    return name.length > maxGraphemes ? name.slice(0, maxGraphemes) + '…' : name;
+  }
+}
+
+function computeWheelLabel(
+  name: string,
+  index: number,
+  n: number,
+  anglePerSegment: number,
+  radiusPx: number
+): { display: string; fontSize: number; radiusFactor: number; textLength: number } {
+  const baseFont = Math.max(5, Math.min(12, anglePerSegment * 0.38));
+  const radiusFactor = n > 36 ? 0.74 : n > 24 ? 0.7 : n > 12 ? 0.66 : 0.63;
+  const rLabel = radiusPx * radiusFactor;
+  const arcLen = rLabel * ((anglePerSegment * Math.PI) / 180);
+
+  if (n > 24) {
+    const t = String(index + 1);
+    const fs = Math.max(7, Math.min(11, anglePerSegment * 0.48));
+    return {
+      display: t,
+      fontSize: fs,
+      radiusFactor,
+      textLength: Math.min(arcLen * 0.95, Math.max(arcLen * 0.4, t.length * fs * 0.62)),
+    };
+  }
+
+  if (n > 12) {
+    const display = shortenGraphemes(name, 2);
+    return {
+      display,
+      fontSize: baseFont,
+      radiusFactor,
+      textLength: Math.min(arcLen * 0.95, Math.max(arcLen * 0.45, display.length * baseFont * 0.58)),
+    };
+  }
+
+  const maxG = Math.max(3, Math.min(14, Math.floor(arcLen / (baseFont * 0.52))));
+  const display = shortenGraphemes(name, maxG);
+  return {
+    display,
+    fontSize: baseFont,
+    radiusFactor,
+    textLength: Math.min(arcLen * 0.95, Math.max(arcLen * 0.35, display.length * baseFont * 0.55)),
+  };
+}
+
 export const Wheel: React.FC<WheelProps> = ({ items, onSpinComplete, isSpinning }) => {
   const controls = useAnimation();
   const [rotation, setRotation] = useState(0);
 
-  // If no items, show placeholder
-  if (items.length === 0) {
-    return (
-      <div className="w-full aspect-square rounded-full border-4 border-[#262626] flex items-center justify-center text-[#525252]">
-        Seçenek yok
-      </div>
-    );
-  }
-
   const numSegments = items.length;
-  const anglePerSegment = 360 / numSegments;
-  const radius = 150; // SVG coordinate space radius
+  const anglePerSegment = numSegments > 0 ? 360 / numSegments : 0;
+  const radius = 150;
   const center = 150;
 
-  // Generate SVG paths for segments
-  const segments = items.map((item, index) => {
-    const startAngle = index * anglePerSegment;
-    const endAngle = (index + 1) * anglePerSegment;
+  const segments = useMemo(() => {
+    if (numSegments === 0) return [];
+    return items.map((item, index) => {
+      const startAngle = index * anglePerSegment;
+      const endAngle = (index + 1) * anglePerSegment;
 
-    // Convert polar to cartesian
-    // Subtract 90 degrees to start at 12 o'clock
-    const startRad = (startAngle - 90) * (Math.PI / 180);
-    const endRad = (endAngle - 90) * (Math.PI / 180);
+      const startRad = (startAngle - 90) * (Math.PI / 180);
+      const endRad = (endAngle - 90) * (Math.PI / 180);
 
-    const x1 = center + radius * Math.cos(startRad);
-    const y1 = center + radius * Math.sin(startRad);
-    const x2 = center + radius * Math.cos(endRad);
-    const y2 = center + radius * Math.sin(endRad);
+      const x1 = center + radius * Math.cos(startRad);
+      const y1 = center + radius * Math.sin(startRad);
+      const x2 = center + radius * Math.cos(endRad);
+      const y2 = center + radius * Math.sin(endRad);
 
-    // SVG Path command
-    // M = Move to center
-    // L = Line to start point
-    // A = Arc to end point (rx ry x-axis-rotation large-arc-flag sweep-flag x y)
-    // Z = Close path
-    const largeArcFlag = anglePerSegment > 180 ? 1 : 0;
+      const largeArcFlag = anglePerSegment > 180 ? 1 : 0;
 
-    const pathData = [
-      `M ${center} ${center}`,
-      `L ${x1} ${y1}`,
-      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-      'Z',
-    ].join(' ');
+      const pathData = [
+        `M ${center} ${center}`,
+        `L ${x1} ${y1}`,
+        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+        'Z',
+      ].join(' ');
 
-    return {
-      path: pathData,
-      color: getCategoryColor(item),
-      label: item.name,
-      rotation: startAngle + anglePerSegment / 2, // For text placement
-    };
-  });
+      const label = computeWheelLabel(item.name, index, numSegments, anglePerSegment, radius);
 
-  useEffect(() => {
-    if (isSpinning) {
-      spin();
-    }
-  }, [isSpinning]);
+      return {
+        path: pathData,
+        color: getCategoryColor(item),
+        rotation: startAngle + anglePerSegment / 2,
+        ...label,
+      };
+    });
+  }, [items, numSegments, anglePerSegment]);
 
-  const spin = async () => {
-    // Random spin logic
-    // We want to land on a random segment.
-    // The pointer is at the top (0 degrees / -90 degrees in SVG space).
-    // But we are rotating the WHEEL.
-    // So if we want segment i to be at the top, we need to rotate the wheel such that segment i is at 0 degrees.
-    
+  const spin = useCallback(async () => {
+    if (numSegments === 0) return;
     const randomIndex = Math.floor(Math.random() * numSegments);
     const winner = items[randomIndex];
     if (!winner) return;
 
-    // Calculate target rotation
-    // We want the center of the winning segment to align with the top pointer.
-    // The segment is at (randomIndex * anglePerSegment) + (anglePerSegment / 2).
-    // To bring this to 0 (top), we rotate the wheel by -(segmentAngle).
-    // Add extra full rotations for effect.
-    
-    const segmentCenterAngle = (randomIndex * anglePerSegment) + (anglePerSegment / 2);
-    const extraSpins = 5 + Math.floor(Math.random() * 5); // 5 to 10 spins
-    const totalRotation = rotation + (360 * extraSpins) + (360 - segmentCenterAngle + (rotation % 360));
-    
-    // Adjust to ensure we always spin forward significantly
-    const finalRotation = totalRotation + 360 * 2; 
-
-    // We need to calculate exactly where it stops to ensure it aligns with the pointer visually
-    // The pointer is at the top.
-    // If rotation is 0, index 0 starts at -90deg (12 o'clock) if we drew it that way?
-    // Wait, in my SVG generation:
-    // Index 0 starts at -90deg (12 o'clock) and goes clockwise.
-    // So if rotation is 0, Index 0 is at the top (spanning 0 to angle).
-    // Actually, my SVG math: startAngle 0 -> -90deg.
-    // So Index 0 is from 12 o'clock to clockwise.
-    // To select Index i, we need to rotate the wheel COUNTER-CLOCKWISE so that Index i moves to the top?
-    // Or rotate CLOCKWISE?
-    // If we rotate the container CLOCKWISE, the segments move CLOCKWISE.
-    // To get a segment to the top, we need to rotate it so it hits the top.
-    // Let's just use a large positive rotation.
-    
-    // Target angle for the center of the winning segment in "unrotated" space is `segmentCenterAngle`.
-    // We want this angle to be at -90deg (top) after rotation.
-    // Current Position + Delta = Final Position
-    // But we usually just rotate the whole div.
-    // Let's say we rotate by `R`.
-    // The visual angle of segment `i` becomes `segmentCenterAngle + R`.
-    // We want `segmentCenterAngle + R = 0` (modulo 360) (assuming 0 is top).
-    // Wait, in SVG, 0 degrees is usually 3 o'clock. I shifted by -90 in drawing.
-    // So visually, 0 degrees in my drawing logic IS 12 o'clock.
-    // So we want `segmentCenterAngle + R = 0` (or 360k).
-    // So `R = -segmentCenterAngle`.
-    // Since we want to spin forward (positive R), `R = 360 * spins - segmentCenterAngle`.
-    
-    const targetRotation = (360 * 5) + (360 - segmentCenterAngle);
+    const segmentCenterAngle = randomIndex * anglePerSegment + anglePerSegment / 2;
+    const targetRotation = 360 * 5 + (360 - segmentCenterAngle);
     const newTotalRotation = rotation + targetRotation;
 
     await controls.start({
       rotate: newTotalRotation,
       transition: {
         duration: 4,
-        ease: [0.15, 0, 0.15, 1], // Custom cubic bezier for "spin" feel
+        ease: [0.15, 0, 0.15, 1],
       },
     });
 
     setRotation(newTotalRotation);
     onSpinComplete(winner);
-  };
+  }, [
+    anglePerSegment,
+    controls,
+    items,
+    numSegments,
+    onSpinComplete,
+    rotation,
+  ]);
+
+  const wasSpinningRef = useRef(false);
+  useEffect(() => {
+    if (items.length === 0) return;
+    if (isSpinning && !wasSpinningRef.current) {
+      void spin();
+    }
+    wasSpinningRef.current = isSpinning;
+  }, [isSpinning, items.length, spin]);
+
+  if (items.length === 0) {
+    return (
+      <div className="flex aspect-square w-full items-center justify-center rounded-full border-4 border-[#262626] text-[#525252]">
+        Seçenek yok
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full max-w-[320px] aspect-square mx-auto">
-      {/* Pointer */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 z-20">
-        <div className="w-0 h-0 border-l-10 border-l-transparent border-r-10 border-r-transparent border-t-20 border-t-[#9A5C28] drop-shadow-lg" />
+    <div className="relative mx-auto aspect-square w-full max-w-[320px]">
+      <div className="absolute top-0 left-1/2 z-20 -translate-x-1/2 -translate-y-4">
+        <div className="h-0 w-0 border-t-20 border-r-10 border-l-10 border-t-[#9A5C28] border-r-transparent border-l-transparent drop-shadow-lg" />
       </div>
 
-      {/* Wheel Container */}
-      <motion.div
-        className="w-full h-full"
-        animate={controls}
-        initial={{ rotate: 0 }}
-      >
-        <svg
-          viewBox="0 0 300 300"
-          className="w-full h-full drop-shadow-2xl"
-          style={{ transform: 'rotate(0deg)' }} // Initial offset if needed
-        >
+      <motion.div className="h-full w-full" animate={controls} initial={{ rotate: 0 }}>
+        <svg viewBox="0 0 300 300" className="h-full w-full drop-shadow-2xl">
           <g>
-            {segments.map((seg, i) => (
-              <g key={i}>
-                <path d={seg.path} fill={seg.color} stroke="#161616" strokeWidth="2" />
-                {/* Text Label */}
-                <g transform={`rotate(${seg.rotation - 90}, ${center}, ${center}) translate(${center}, ${center})`}>
-                  <text
-                    x={radius * 0.65}
-                    y={5}
-                    fill="white"
-                    textAnchor="middle"
-                    alignmentBaseline="middle"
-                    fontSize="12"
-                    fontWeight="600"
-                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
-                    transform={`rotate(90, ${radius * 0.65}, 0)`}
+            {segments.map((seg, i) => {
+              const tx = radius * seg.radiusFactor;
+              return (
+                <g key={i}>
+                  <path d={seg.path} fill={seg.color} stroke="#161616" strokeWidth="2" />
+                  <g
+                    transform={`rotate(${seg.rotation - 90}, ${center}, ${center}) translate(${center}, ${center})`}
                   >
-                    {seg.label.length > 12 ? seg.label.substring(0, 10) + '...' : seg.label}
-                  </text>
+                    <text
+                      x={tx}
+                      y={5}
+                      fill="#FFFFFF"
+                      textAnchor="middle"
+                      alignmentBaseline="middle"
+                      fontSize={seg.fontSize}
+                      fontWeight="700"
+                      textLength={seg.textLength}
+                      lengthAdjust="spacingAndGlyphs"
+                      style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                      transform={`rotate(90, ${tx}, 0)`}
+                    >
+                      {seg.display}
+                    </text>
+                  </g>
                 </g>
-              </g>
-            ))}
+              );
+            })}
           </g>
-          {/* Center Hub */}
-          <circle cx={center} cy={center} r={20} fill="#262626" stroke="#161616" strokeWidth="4" />
+          <circle cx={center} cy={center} r={20} fill="#2e2e2e" stroke="#161616" strokeWidth="4" />
           <circle cx={center} cy={center} r={8} fill="#0A0A0A" />
         </svg>
       </motion.div>

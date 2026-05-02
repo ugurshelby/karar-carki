@@ -9,6 +9,16 @@ export default defineConfig(({mode}) => {
     plugins: [react(), tailwindcss()],
     build: {
       chunkSizeWarningLimit: 600,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom/client'],
+            'vendor-motion': ['motion'],
+            'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+            'vendor-lucide': ['lucide-react'],
+          },
+        },
+      },
     },
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),

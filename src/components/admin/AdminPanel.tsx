@@ -72,9 +72,15 @@ export const AdminPanel: React.FC<{
     return (
       <div
         ref={setNodeRef}
-        className={`rounded-2xl border p-3 space-y-3 min-h-[220px] ${
-          isOver ? 'border-[rgba(245,240,232,0.16)] bg-[#2e2e2e]' : 'border-[rgba(245,240,232,0.08)] bg-[#242424]'
-        }`}
+        className="space-y-3"
+        style={{
+          borderRadius: 'var(--r-md)',
+          padding: 8,
+          minHeight: 120,
+          border: isOver ? '1.5px dashed var(--accent)' : '1.5px dashed transparent',
+          background: isOver ? 'var(--accent-glow)' : 'transparent',
+          transition: '150ms',
+        }}
       >
         {children}
       </div>
@@ -84,64 +90,139 @@ export const AdminPanel: React.FC<{
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-100 bg-black/80 backdrop-blur-sm p-4 md:p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 14, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 14, scale: 0.98 }}
-            className="h-full w-full max-w-6xl mx-auto bg-[#1a1a1a] border border-[rgba(245,240,232,0.12)] rounded-3xl overflow-hidden flex flex-col"
+        <motion.div
+          className="fixed inset-0 z-45"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ ease: [0.32, 0.72, 0, 1], duration: 0.4 }}
+          style={{ background: 'var(--bg-base)' }}
+        >
+          <div
+            className="sticky top-0 z-10"
+            style={{
+              background: 'var(--bg-overlay)',
+              borderBottom: '0.5px solid var(--border)',
+              height: 56,
+              padding: '0 16px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            <div className="bg-[#111111] border-b border-[rgba(245,240,232,0.08)] px-5 py-4 flex items-center justify-between">
-              <div>
-                <div className="text-[#F5F0E8] font-semibold tracking-tight">Admin Paneli</div>
-                <div className="text-xs text-[#6B6560] mt-1">Sürükle-bırak ile semt eşleştir, kategori seç, sonra kaydet.</div>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => onSave(Array.from(dirty.entries()).map(([id, patch]) => ({ id, patch })))}
-                  disabled={dirty.size === 0}
-                  className="min-h-[44px] px-4 rounded-2xl bg-[#9A5C28] text-[#F5F0E8] font-semibold disabled:opacity-35"
-                >
-                  Değişiklikleri Kaydet
-                </button>
-                <button
-                  onClick={onClose}
-                  className="min-touch w-10 h-10 rounded-2xl bg-[#2e2e2e] border border-[rgba(245,240,232,0.08)] text-[#A8A095] flex items-center justify-center"
-                >
-                  <X size={20} strokeWidth={1.6} />
-                </button>
-              </div>
-            </div>
+            <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>Admin Paneli</div>
+            <button
+              onClick={onClose}
+              className="min-touch flex items-center justify-center"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 'var(--r-full)',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+              }}
+              aria-label="Kapat"
+              type="button"
+            >
+              <X size={22} strokeWidth={1.6} />
+            </button>
+          </div>
 
-            <div className="flex-1 overflow-auto p-5">
-              <DndContext onDragEnd={onDragEnd}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <div className="text-xs font-medium uppercase tracking-wider text-[#6B6560] mb-3">Eşleştirilmemiş</div>
-                    <UnmatchedDropZone>
-                      <SortableContext items={unmatched.map(v => v.id)} strategy={verticalListSortingStrategy}>
-                        {unmatched.map((v) => (
-                          <DraggableVenueCard key={v.id} venue={v} onCategoryChange={onCategoryChange} />
-                        ))}
-                      </SortableContext>
-                    </UnmatchedDropZone>
+          <div
+            className="flex-1 overflow-auto"
+            style={{
+              padding: 16,
+              paddingBottom: 90,
+              scrollbarWidth: 'none',
+            }}
+          >
+            <DndContext onDragEnd={onDragEnd}>
+              <div className="flex flex-col gap-4 md:flex-row md:items-start">
+                <div style={{ width: '100%' }} className="md:w-[280px] md:shrink-0">
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      marginBottom: 8,
+                    }}
+                  >
+                    Eşleştirilmemiş
                   </div>
 
-                  <div className="grid grid-cols-1 gap-6">
+                  <UnmatchedDropZone>
+                    <SortableContext items={unmatched.map(v => v.id)} strategy={verticalListSortingStrategy}>
+                      {unmatched.length === 0 ? (
+                        <div
+                          style={{
+                            borderRadius: 'var(--r-md)',
+                            padding: 16,
+                            border: '1.5px dashed var(--border-strong)',
+                            color: 'var(--text-muted)',
+                            textAlign: 'center',
+                            fontSize: 12,
+                          }}
+                        >
+                          Buraya bırak
+                        </div>
+                      ) : null}
+                      {unmatched.map((v) => (
+                        <DraggableVenueCard key={v.id} venue={v} onCategoryChange={onCategoryChange} />
+                      ))}
+                    </SortableContext>
+                  </UnmatchedDropZone>
+                </div>
+
+                <div className="flex-1">
+                  <div className="flex gap-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
                     {districts.map((d) => (
-                      <DistrictColumn
-                        key={d}
-                        district={d}
-                        venues={byDistrict.get(d) ?? []}
-                        onCategoryChange={onCategoryChange}
-                      />
+                      <div key={d} style={{ minWidth: 200, flexShrink: 0 }}>
+                        <DistrictColumn
+                          district={d}
+                          venues={byDistrict.get(d) ?? []}
+                          onCategoryChange={onCategoryChange}
+                        />
+                      </div>
                     ))}
                   </div>
                 </div>
-              </DndContext>
-            </div>
-          </motion.div>
-        </div>
+              </div>
+            </DndContext>
+          </div>
+
+          <div
+            className="sticky bottom-0"
+            style={{
+              background: 'var(--bg-overlay)',
+              borderTop: '0.5px solid var(--border)',
+              padding: `12px 16px calc(12px + env(safe-area-inset-bottom))`,
+            }}
+          >
+            <button
+              onClick={() => onSave(Array.from(dirty.entries()).map(([id, patch]) => ({ id, patch })))}
+              disabled={dirty.size === 0}
+              className="min-touch w-full"
+              style={{
+                height: 52,
+                borderRadius: 'var(--r-md)',
+                background: 'var(--accent)',
+                color: '#fff',
+                fontSize: 15,
+                fontWeight: 600,
+                border: 'none',
+                opacity: dirty.size === 0 ? 0.4 : 1,
+                cursor: dirty.size === 0 ? 'default' : 'pointer',
+              }}
+              type="button"
+            >
+              Değişiklikleri Kaydet
+            </button>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Disc, Settings2 } from 'lucide-react';
+import { Crown, Disc, MapPin, Settings2, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
@@ -9,41 +9,117 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, onTabChange, onOpenAdmin }) => {
-  const { session } = useAuth();
+  const { session, logout } = useAuth();
   const isAdmin = session?.isAdmin ?? false;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#0A0A0A]/90 backdrop-blur-lg border-t border-[#262626] pt-2 pb-safe z-50" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
-      <div className="flex justify-around items-center h-14 min-h-[56px] max-w-md mx-auto px-2">
+    <div
+      className="fixed bottom-0 left-0 right-0 z-40"
+      style={{
+        background: 'var(--bg-overlay)',
+        borderTop: '0.5px solid var(--border)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+    >
+      <div
+        className="mx-auto max-w-md"
+        style={{ display: 'flex', alignItems: 'center', height: 56, padding: '0 8px' }}
+      >
+        <button
+          onClick={() => {
+            if (!session) return;
+            const ok = window.confirm('Çıkış yapılsın mı?');
+            if (ok) logout();
+          }}
+          className="min-touch"
+          style={{
+            flexShrink: 0,
+            width: 40,
+            height: 40,
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            color: isAdmin ? 'var(--accent)' : 'var(--text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+          aria-label={isAdmin ? 'Shelby (Çıkış)' : 'Misafir (Çıkış)'}
+          type="button"
+        >
+          {isAdmin ? <Crown size={20} strokeWidth={1.6} /> : <User size={20} strokeWidth={1.6} />}
+        </button>
+
         <button
           onClick={() => onTabChange('venues')}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-            activeTab === 'venues' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-          }`}
+          className="min-touch"
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 3,
+            cursor: 'pointer',
+            border: 'none',
+            background: 'transparent',
+            color: activeTab === 'venues' ? 'var(--accent)' : 'var(--text-muted)',
+          }}
+          type="button"
         >
           <MapPin size={24} strokeWidth={1.6} />
-          <span className="text-[10px] font-medium">Mekanlar</span>
+          <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Mekanlar
+          </span>
         </button>
 
         <button
           onClick={() => onTabChange('wheel')}
-          className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${
-            activeTab === 'wheel' ? 'text-white' : 'text-gray-500 hover:text-gray-300'
-          }`}
+          className="min-touch"
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 3,
+            cursor: 'pointer',
+            border: 'none',
+            background: 'transparent',
+            color: activeTab === 'wheel' ? 'var(--accent)' : 'var(--text-muted)',
+          }}
+          type="button"
         >
           <Disc size={24} strokeWidth={1.6} />
-          <span className="text-[10px] font-medium">Çark</span>
+          <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Çark
+          </span>
         </button>
 
-        {isAdmin && onOpenAdmin && (
-          <button
-            onClick={onOpenAdmin}
-            className="flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors text-gray-500 hover:text-gray-300"
-          >
-            <Settings2 size={24} strokeWidth={1.6} />
-            <span className="text-[10px] font-medium">Admin</span>
-          </button>
-        )}
+        <button
+          onClick={() => {
+            if (!isAdmin || !onOpenAdmin) return;
+            onOpenAdmin();
+          }}
+          className="min-touch"
+          style={{
+            flexShrink: 0,
+            width: 40,
+            height: 40,
+            border: 'none',
+            background: 'transparent',
+            cursor: isAdmin && onOpenAdmin ? 'pointer' : 'default',
+            color: isAdmin ? 'var(--text-muted)' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: isAdmin ? 1 : 0,
+          }}
+          aria-label="Admin panelini aç"
+          type="button"
+        >
+          <Settings2 size={20} strokeWidth={1.6} />
+        </button>
       </div>
     </div>
   );

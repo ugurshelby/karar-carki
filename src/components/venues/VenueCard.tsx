@@ -1,76 +1,176 @@
 import React from 'react';
-import { ExternalLink, Star } from 'lucide-react';
-import type { Category, Venue } from '../../types';
-import { Badge } from '../ui/Badge';
+import { ExternalLink, Pencil, Star, Trash2 } from 'lucide-react';
+import { motion } from 'motion/react';
+import type { Venue } from '../../types';
+import { getGoogleMapsUrl } from '../../lib/mapsUrls';
+import { useVenuePlacesEnrichment } from '../../hooks/useVenuePlacesEnrichment';
+import CategoryBadge from '../ui/CategoryBadge';
 
-function categoryLabel(cat: Category | null): string {
-  if (cat === 'yemek') return 'Yemek';
-  if (cat === 'tatlı') return 'Tatlı';
-  if (cat === 'kafe') return 'Kafe';
-  if (cat === 'bar') return 'Bar';
-  return 'Belirsiz';
+function cssKey(category: Venue['category']): string {
+  if (category === 'yemek') return 'food';
+  if (category === 'kafe') return 'cafe';
+  if (category === 'tatlı') return 'sweet';
+  if (category === 'bar') return 'bar';
+  return 'food';
 }
 
-function formatPrice(level: number | null | undefined): string {
-  if (typeof level !== 'number' || level < 0) return '—';
-  const capped = Math.min(4, Math.max(0, level));
-  if (capped === 0) return 'Ücretsiz';
-  return '₺'.repeat(capped);
-}
-
-export const VenueCard: React.FC<{ venue: Venue }> = ({ venue }) => {
-  const mapsUrl = venue.placeId
-    ? `https://www.google.com/maps/place/?q=place_id:${venue.placeId}`
-    : null;
+export const VenueCard: React.FC<{
+  venue: Venue;
+  onDelete?: (id: string) => void;
+  onEdit?: (venue: Venue) => void;
+}> = ({ venue: venueIn, onDelete, onEdit }) => {
+  const venue = useVenuePlacesEnrichment(venueIn);
+  const key = cssKey(venue.category);
 
   return (
-    <div
-      className="group relative w-full overflow-hidden rounded-3xl border border-white/10 bg-black/30 shadow-lg transition-transform md:hover:scale-[1.02] md:hover:shadow-2xl"
+    <motion.div
+      whileHover={{ scale: 1.015 }}
+      transition={{ duration: 0.15 }}
+      className="relative w-full overflow-hidden"
       style={{
-        backgroundImage: venue.photoUrl ? `url(${venue.photoUrl})` : undefined,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        borderRadius: 'var(--r-lg)',
+        minHeight: 160,
+        cursor: 'pointer',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.4)',
       }}
     >
-      <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/10 to-black/0" />
-
-      <div className="absolute left-4 top-4">
-        <Badge tone="accent">{categoryLabel(venue.category)}</Badge>
-      </div>
-
-      {mapsUrl && (
-        <a
-          href={mapsUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="absolute right-3 top-3 min-touch w-10 h-10 rounded-full bg-black/35 border border-white/10 backdrop-blur flex items-center justify-center text-white/90 hover:text-white transition-colors"
-          aria-label="Google Maps’te aç"
-        >
-          <ExternalLink size={18} />
-        </a>
+      {venue.photoUrl ? (
+        <img
+          src={venue.photoUrl}
+          alt=""
+          className="absolute inset-0 h-full w-full"
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, var(--cat-${key}-dark) 0%, color-mix(in srgb, var(--cat-${key}-dark) 60%, #000) 100%)`,
+          }}
+        />
       )}
 
-      <div className="relative p-5 pt-20">
-        <div className="mt-16">
-          <div className="text-2xl font-bold tracking-tight" style={{ fontFamily: 'var(--font-serif)' }}>
-            {venue.name}
-          </div>
-          <div className="text-sm text-white/65 mt-1">
-            {venue.district ?? 'Eşleştirilmemiş'}
-          </div>
-        </div>
+      {!venue.photoUrl && (
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px) 0 0 / 20px 20px',
+          }}
+        />
+      )}
 
-        <div className="mt-5 flex items-end justify-between">
-          <div className="flex items-center gap-2 text-sm text-white/80">
-            <Star size={16} className="text-amber-300" />
-            <span>{typeof venue.rating === 'number' ? venue.rating.toFixed(1) : '—'}</span>
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.05) 100%)',
+        }}
+      />
+
+      <div className="absolute z-2" style={{ top: 10, left: 10 }}>
+        {venue.category ? <CategoryBadge category={venue.category} size="sm" /> : null}
+      </div>
+
+      <div className="absolute z-2 flex items-center" style={{ top: 10, right: 10, gap: 6 }}>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={() => window.open(getGoogleMapsUrl(venue), '_blank', 'noreferrer')}
+          className="min-touch flex items-center justify-center"
+          style={{
+            borderRadius: 'var(--r-full)',
+            padding: 6,
+            border: 'none',
+            background: 'rgba(0,0,0,0.4)',
+            color: 'rgba(255,255,255,0.9)',
+            cursor: 'pointer',
+          }}
+          aria-label="Google Maps’te aç"
+          type="button"
+        >
+          <ExternalLink size={18} strokeWidth={1.6} />
+        </motion.button>
+
+        {(onEdit || onDelete) && (
+          <>
+            {onEdit && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onEdit(venue)}
+                className="min-touch flex items-center justify-center"
+                style={{
+                  borderRadius: 'var(--r-full)',
+                  padding: 6,
+                  border: 'none',
+                  background: 'rgba(0,0,0,0.4)',
+                  color: 'rgba(255,255,255,0.9)',
+                  cursor: 'pointer',
+                }}
+                aria-label="Mekanı düzenle"
+                type="button"
+              >
+                <Pencil size={18} strokeWidth={1.6} />
+              </motion.button>
+            )}
+            {onDelete && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onDelete(venue.id)}
+                className="min-touch flex items-center justify-center"
+                style={{
+                  borderRadius: 'var(--r-full)',
+                  padding: 6,
+                  border: 'none',
+                  background: 'rgba(0,0,0,0.4)',
+                  color: 'rgba(255,255,255,0.9)',
+                  cursor: 'pointer',
+                }}
+                aria-label="Mekanı sil"
+                type="button"
+              >
+                <Trash2 size={18} strokeWidth={1.6} />
+              </motion.button>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="absolute z-2" style={{ left: 0, right: 0, bottom: 0, padding: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 16,
+                fontWeight: 600,
+                color: '#fff',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.2,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
+            >
+              {venue.name}
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 2 }}>
+              {venue.district ?? 'Eşleştirilmemiş'}
+            </div>
           </div>
-          <div className="text-sm font-semibold text-white/90">
-            {formatPrice(venue.priceLevel)}
+
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 3 }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 500, color: '#F5A020' }}>
+              <Star size={14} strokeWidth={1.6} style={{ color: '#F5A020' }} />
+              <span>{typeof venue.rating === 'number' ? venue.rating.toFixed(1) : '—'}</span>
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>
+              {typeof venue.priceLevel === 'number' ? '₺'.repeat(Math.max(0, venue.priceLevel)) : '—'}
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

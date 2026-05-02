@@ -13,14 +13,68 @@
   padding-top: env(safe-area-inset-top);
 }
 
+:root {
+  /* Arka planlar */
+  --bg-base: #1a1a1a;
+  --bg-surface: #242424;
+  --bg-elevated: #2e2e2e;
+  --bg-overlay: #111111;
+
+  /* Aksan */
+  --accent: #9A5C28;
+  --accent-dark: #7A4418;
+  --accent-glow: rgba(154, 92, 40, 0.20);
+
+  /* Metin */
+  --text-primary: #F5F0E8;
+  --text-secondary: #A8A095;
+  --text-muted: #6B6560;
+
+  /* Kenarlık */
+  --border: rgba(245, 240, 232, 0.08);
+  --border-strong: rgba(245, 240, 232, 0.16);
+
+  /* Köşe */
+  --r-sm: 5px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 9999px;
+
+  /* Kategori — yemek */
+  --cat-food-color: #E84820;
+  --cat-food-bg: rgba(232, 72, 32, 0.14);
+  --cat-food-border: rgba(232, 72, 32, 0.35);
+  --cat-food-dark: #280800;
+
+  /* Kategori — kafe */
+  --cat-cafe-color: #B5713A;
+  --cat-cafe-bg: rgba(107, 58, 31, 0.25);
+  --cat-cafe-border: rgba(107, 58, 31, 0.55);
+  --cat-cafe-dark: #1a0c04;
+
+  /* Kategori — tatlı */
+  --cat-sweet-color: #5BAFD6;
+  --cat-sweet-bg: rgba(91, 175, 214, 0.12);
+  --cat-sweet-border: rgba(91, 175, 214, 0.35);
+  --cat-sweet-dark: #0a1e2a;
+
+  /* Kategori — bar */
+  --cat-bar-color: #4CA86A;
+  --cat-bar-bg: rgba(42, 107, 60, 0.20);
+  --cat-bar-border: rgba(42, 107, 60, 0.50);
+  --cat-bar-dark: #0a1a0e;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background-color: #111;
-  color: white;
-  font-family: var(--font-sans);
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);

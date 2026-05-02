@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { DataProvider, useData } from './context/DataContext';
 import { Navbar } from './components/Navbar';
@@ -47,10 +47,15 @@ const InnerApp: React.FC<{
 };
 
 const AuthedApp: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'venues' | 'wheel'>('wheel');
+  const [activeTab, setActiveTab] = useState<'venues' | 'wheel'>('venues');
   const { session, selectRole, verifyPin } = useAuth();
   const [pinOpen, setPinOpen] = useState(false);
   const [adminOpen, setAdminOpen] = useState(false);
+
+  useEffect(() => {
+    if (!session) return;
+    setActiveTab('venues');
+  }, [session?.role]);
 
   if (!session) {
     return (
